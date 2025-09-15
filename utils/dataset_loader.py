@@ -7,7 +7,6 @@ import os
 # 设置Hugging Face镜像地址
 os.environ['HF_ENDPOINT'] = 'https://hf-mirror.com'
 
-import os
 from typing import List, Dict, Any
 from datasets import load_dataset
 import random

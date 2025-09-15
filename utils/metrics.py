@@ -5,6 +5,7 @@
 """
 import re
 import json
+import traceback
 
 from .humaneval_utils import evaluate_functional_correctness
 
@@ -28,13 +29,10 @@ def get_multiple_choice_answer(content, options_count):
     从内容中解析选择题答案。
     """
     try:
-        # 优先尝试json格式
-        json_match = re.search(r'\{.*?\}', content, re.DOTALL)
-        if json_match:
-            obj = json.loads(json_match.group(0))
-            ans = obj.get('answer', '').strip().upper()
-            if ans in [chr(i + 65) for i in range(options_count)]:
-                return ans
+        obj = json.loads(content)
+        ans = obj.get('answer', '').strip().upper()
+        if ans in [chr(i + 65) for i in range(options_count)]:
+            return ans
     except Exception:
         pass
     return None
@@ -44,13 +42,10 @@ def get_math_answer(content):
     从内容中解析数学答案。
     """
     try:
-        # 优先尝试json格式
-        json_match = re.search(r'\{.*?\}', content, re.DOTALL)
-        if json_match:
-            obj = json.loads(json_match.group(0))
-            ans = obj.get('answer', '').strip()
-            if _num_pat.fullmatch(ans):
-                return ans
+        obj = json.loads(content)
+        ans = obj.get('answer', '').strip()
+        if _num_pat.fullmatch(ans):
+            return ans
     except Exception:
         pass
     return None
@@ -60,13 +55,10 @@ def get_code_answer(content):
     从内容中解析代码答案。
     """
     try:
-        # 优先尝试json格式
-        json_match = re.search(r'\{.*?\}', content, re.DOTALL)
-        if json_match:
-            obj = json.loads(json_match.group(0))
-            ans = obj.get('answer', '')
-            if ans:
-                return ans
+        obj = json.loads(content)
+        ans = obj.get('answer', '')
+        if ans:
+            return ans
     except Exception:
         pass
     return None
