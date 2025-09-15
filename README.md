@@ -33,7 +33,15 @@ export HF_ENDPOINT=https://hf-mirror.com
 source ~/.bashrc
 ```
 
-# 3. 运行代码
+# 3 创建环境
+
+```shell
+conda create -n malicious_mas python=3.12
+conda activate malicious_mas
+pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+```
+
+# 4 运行代码
 
 ```shell
 python main.py
@@ -49,4 +57,11 @@ python main.py
         # api: Qwen/Qwen3-8B...
     # --sample_size 样本数量
     # --random_seed 随机种子
+```
+
+后台运行
+
+```shell
+nohup python -u main.py > output.log 2>&1 &
+echo $! > output.pid
 ```
