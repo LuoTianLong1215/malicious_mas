@@ -29,58 +29,66 @@ def main():
     
     # 根据拓扑类型设置malicious_role参数选项
     if args.topology == 'hierarchical':
-        parser.add_argument('--malicious_role', default='Solver', choices=hierarchical_topology.roles, help='恶意角色 Analyst: 分析; Solver: 解决; Validator: 验证')
+        parser.add_argument('--malicious_roles', nargs='+', default=hierarchical_topology.roles, choices=hierarchical_topology.roles, help=hierarchical_topology.help)
     elif args.topology == 'centralized':
-        parser.add_argument('--malicious_role', default='centralized_1', choices=['centralized_1', 'centralized_2', 'centralized_3'], help='恶意角色 centralized_1: 中心1; centralized_2: 中心2; centralized_3: 中心3')
+        parser.add_argument('--malicious_roles', default='centralized_1', choices=['centralized_1', 'centralized_2', 'centralized_3'], help='恶意角色 centralized_1: 中心1; centralized_2: 中心2; centralized_3: 中心3')
     elif args.topology == 'decentralized':
-        parser.add_argument('--malicious_role', default='decentralized_1', choices=['decentralized_1', 'decentralized_2', 'decentralized_3'], help='恶意角色 decentralized_1:  decentralized_2: decentralized_3:')
+        parser.add_argument('--malicious_roles', default='decentralized_1', choices=['decentralized_1', 'decentralized_2', 'decentralized_3'], help='恶意角色 decentralized_1:  decentralized_2: decentralized_3:')
     
     # 解析所有参数
     args = parser.parse_args(remaining_argv)
+
+    cases = {
+        'Analyst': ['mmlu_pro', 'gsm8k', 'math'],
+        'Solver': ['math'],
+        'Validator': ['mmlu_pro'],
+    }
     
-    # 依次处理多个数据集
-    for dataset_name in args.dataset:
-        print("=" * 100)
+    # for malicious_role in args.malicious_roles:
+    for malicious_role, datasets in cases.items():
+    #     for dataset_name in args.dataset:
+        for dataset_name in datasets:
+            print("=" * 100)
 
-        # 设置随机种子
-        set_seed(args.random_seed)
+            # 设置随机种子
+            set_seed(args.random_seed)
 
-        # 创建数据集加载器
-        dataset_loader = create_dataset_loader(
-            dataset_name=dataset_name,
-            sample_size=args.sample_size,
-            random_seed=args.random_seed
-        )
-        
-        # 加载数据集
-        print(f"Load {dataset_name} Dataset...")
-        samples = dataset_loader.load_dataset()
-        
-        if not samples:
-            print(f"Load {dataset_name} Dataset Failed")
-            continue
-        
-        print(f"Load {len(samples)} Samples from {dataset_name} Dataset")
-        
-        # 获取数据集信息
-        dataset_info = dataset_loader.get_dataset_info()
-        
-        # 设置输出目录
-        results_dir = get_result_dir(dataset_info['name'], args.topology, args.malicious_role, args.model)
-        os.makedirs(results_dir, exist_ok=True)
-        
-        print(f"Dataset Name: {dataset_name}")
-        print(f"Dataset Type: {dataset_info['type']}")
-        print(f"Model: {args.model}")
-        print(f"Sample Size: {args.sample_size}")
-        print(f"Output Directory: {results_dir}")
-        print(f"Topology: {args.topology}")
-        print(f"Malicious Role: {args.malicious_role}")
-        print("=" * 100)
-        
-        if args.topology == 'hierarchical':
-            # 运行实验
-            hierarchical_topology.run_simulation(dataset_info, samples, results_dir, args.malicious_role, args.llm, args.model)
+            # 创建数据集加载器
+            dataset_loader = create_dataset_loader(
+                dataset_name=dataset_name,
+                sample_size=args.sample_size,
+                random_seed=args.random_seed
+            )
+            
+            # 加载数据集
+            print(f"Load {dataset_name} Dataset...")
+            samples = dataset_loader.load_dataset()
+            
+            if not samples:
+                print(f"Load {dataset_name} Dataset Failed")
+                continue
+            
+            print(f"Load {len(samples)} Samples from {dataset_name} Dataset")
+            
+            # 获取数据集信息
+            dataset_info = dataset_loader.get_dataset_info()
+            
+            # 设置输出目录
+            results_dir = get_result_dir(dataset_info['name'], args.topology, malicious_role, args.model)
+            os.makedirs(results_dir, exist_ok=True)
+            
+            print(f"Dataset Name: {dataset_name}")
+            print(f"Dataset Type: {dataset_info['type']}")
+            print(f"Model: {args.model}")
+            print(f"Sample Size: {args.sample_size}")
+            print(f"Output Directory: {results_dir}")
+            print(f"Topology: {args.topology}")
+            print(f"Malicious Role: {malicious_role}")
+            print("=" * 100)
+            
+            if args.topology == 'hierarchical':
+                # 运行实验
+                hierarchical_topology.run_simulation(dataset_info, samples, results_dir, malicious_role, args.llm, args.model)
 
 if __name__ == '__main__':
     # nohup python -u main.py > output.log 2>&1 &
