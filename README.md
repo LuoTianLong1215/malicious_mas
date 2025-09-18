@@ -41,6 +41,12 @@ conda activate malicious_mas
 pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
+保存环境
+
+```shell
+pip freeze > requirements.txt
+```
+
 # 4 运行代码
 
 ```shell
