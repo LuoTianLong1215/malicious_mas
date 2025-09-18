@@ -45,12 +45,12 @@ pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 ```shell
 python main.py
-    # --dataset 数据集名称 [mmlu, mmlu_pro, gsm8k, math, humaneval]
     # --topology 拓扑策略 [hierarchical, centralized, decentralized]
     # --malicious_role 恶意角色 
         # hierarchical: Analyst, Solver, Validator
-        # centralized
-        # decentralized
+        # centralized: Coordinator, Expert, Verifier
+        # decentralized: Agent1, Agent2, Agent3
+    # --dataset 数据集名称 [mmlu, mmlu_pro, gsm8k, math, humaneval]
     # --llm 模型调用 [ollama, api]
     # --model 模型名称 
         # ollama: qwen3:8b...
@@ -62,6 +62,7 @@ python main.py
 后台运行
 
 ```shell
+conda activate malicious_mas
 nohup python -u main.py > output.log 2>&1 &
 echo $! > output.pid
 ```
