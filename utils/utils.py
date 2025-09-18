@@ -50,4 +50,5 @@ def get_result_dir(subject, topology, malicious_role, model, base_dir='multiagen
     safe_subject = subject.replace(' ', '_').replace('/', '_')
     safe_model = model.replace(':', '-').replace('/', '_')
     dir_name = f"{safe_subject}_{time_str}"
+    print(base_dir, topology, malicious_role, safe_model, dir_name)
     return os.path.join(base_dir, topology, malicious_role, safe_model, dir_name)
