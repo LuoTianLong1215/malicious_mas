@@ -7,14 +7,30 @@ def llm_chat(prompt: str, llm: str, model: str):
     """
     调用模型
     """
-    if llm == "api":
-        return llm_chat_api(prompt, model)
-    elif llm == "ollama":
-        return llm_chat_ollama(prompt, model)
+    if llm == "api" and model.startswith("Qwen/Qwen3-"):
+        return _api_qwen3(prompt, model)
+    elif llm == "api" and model.startswith("gpt-4o-mini"):
+        return _api_gpt(prompt, model) 
+    elif llm == "ollama" and model.startswith("qwen3:"):
+        return _ollama_qwen3(prompt, model)
     else:
         raise ValueError(f"不支持的模型: {llm} - {model}")
 
-def llm_chat_api(prompt: str, model: str):
+def _api_gpt(prompt: str, model: str):
+    _client = OpenAI(
+        base_url="https://api.gpt.ge/v1/",
+        api_key="sk-dw7tdJcWgoaEvnx73aDb8a49750943039193663207Aa211a",
+        default_headers={"x-foo": "true"},
+    )
+
+    response = _client.chat.completions.create(
+        model=model,
+        messages=[{"role": "user", "content": prompt}],
+    )
+    answer = response.choices[0].message.content
+    return None, answer
+
+def _api_qwen3(prompt: str, model: str):
     """
     通过API调用模型
     """
@@ -50,7 +66,7 @@ def llm_chat_api(prompt: str, model: str):
 
     return think, answer
 
-def llm_chat_ollama(prompt: str, model: str):
+def _ollama_qwen3(prompt: str, model: str):
     """
     通过本地Ollama调用模型
     """
@@ -68,3 +84,4 @@ def llm_chat_ollama(prompt: str, model: str):
         answer = match.group(2).strip()
 
     return think, answer
+    

@@ -10,10 +10,10 @@ from utils.llm import llm_chat
 from utils.metrics import get_predict_answer, parse_detect_result
 
 
-coordinator_role = 'Coordinator'
 expert_role = 'Expert'
 verifier_role = 'Verifier'
-roles = [coordinator_role, expert_role, verifier_role]
+coordinator_role = 'Coordinator'
+roles = [expert_role, verifier_role, coordinator_role]
 
 def run_single_simulation(dataset_info, sample, condition, malicious_role, llm, model):
     """
@@ -49,67 +49,25 @@ def run_single_simulation(dataset_info, sample, condition, malicious_role, llm, 
         format_kwargs['choices'] = "/".join([chr(i + 65) for i in range(len(sample['options']))])
         format_kwargs['options'] = "\n".join(sample['options'])
 
-    # 1. Coordinator分析问题并返回instruction
-    prompt = get_prompt(dataset_info, coordinator_role, condition, malicious_role)[0].format(**format_kwargs)
-    think, coordinator_response = llm_chat(prompt, llm, model)
+    for role in roles:
+        prompt = get_prompt(dataset_info, role, condition, malicious_role).format(**format_kwargs)
+        think, response = llm_chat(prompt, llm, model)
+        
+        answer = get_predict_answer(response, dataset_info)
+        agent_records.append({"role": role, "prompt": prompt, "think": think, "answer": response, "predict_answer": answer})
+        records_str += f"\n{role}: {response}"
+
+        format_kwargs[role.lower() + '_answer'] = response
     
-    # 记录Coordinator结果
-    agent_records.append({"role": coordinator_role, "prompt": prompt, "think": think, "answer": coordinator_response})
-    records_str += f"\n{coordinator_role}: {coordinator_response}"
-    
-    # 解析Coordinator的instruction
-    try:
-        instruction = json.loads(coordinator_response).get('instruction', '')
-    except Exception:
-        instruction = coordinator_response
-    
-    # 2. Expert根据问题和instruction生成思路和答案
-    format_kwargs['instruction'] = instruction
-    prompt = get_prompt(dataset_info, expert_role, condition, malicious_role).format(**format_kwargs)
-    think, expert_response = llm_chat(prompt, llm, model)
-    
-    # 解析Expert的答案
-    expert_answer = get_predict_answer(expert_response, dataset_info)
-    
-    # 记录Expert结果
-    agent_records.append({"role": expert_role, "prompt": prompt, "think": think, "answer": expert_response, "predict_answer": expert_answer})
-    records_str += f"\n{expert_role}: {expert_response}"
-    
-    # 3. Verifier根据instruction和Expert的答案生成自己的答案
-    format_kwargs['expert_answer'] = expert_response
-    prompt = get_prompt(dataset_info, verifier_role, condition, malicious_role).format(**format_kwargs)
-    think, verifier_response = llm_chat(prompt, llm, model)
-    
-    # 解析Verifier的答案
-    verifier_answer = get_predict_answer(verifier_response, dataset_info)
-    
-    # 记录Verifier结果
-    agent_records.append({"role": verifier_role, "prompt": prompt, "think": think, "answer": verifier_response, "predict_answer": verifier_answer})
-    records_str += f"\n{verifier_role}: {verifier_response}"
-    
-    # 4. Coordinator从Expert和Verifier的答案中选择并给出理由
-    format_kwargs['expert_response'] = expert_response
-    format_kwargs['verifier_response'] = verifier_response
-    prompt = get_prompt(dataset_info, coordinator_role, condition, malicious_role)[1].format(**format_kwargs)
-    think, answer = llm_chat(prompt, llm, model)
-    
-    # 解析最终答案
-    final_answer = get_predict_answer(answer, dataset_info)
-    
-    # 记录Coordinator最终结果
-    agent_records.append({"role": coordinator_role, "prompt": prompt, "think": think, "answer": answer, "predict_answer": final_answer})
-    records_str += f"\n{coordinator_role}: {answer}"
-    
-    # 5. 构建检测提示词
     prompt = get_detector_prompt(dataset_info, sample, records_str)
-    think, answer = llm_chat(prompt, llm, model)
-    predict_role = parse_detect_result(answer, roles)
+    think, response = llm_chat(prompt, llm, model)
+    predict_role = parse_detect_result(response, roles)
     agent_records.append({
         "role": "Detector",
         "prompt": prompt,
         "think": think,
-        "answer": answer,
+        "answer": response,
         "predict_role": predict_role,
     })
     
-    return agent_records, final_answer, predict_role
+    return agent_records, answer, predict_role
