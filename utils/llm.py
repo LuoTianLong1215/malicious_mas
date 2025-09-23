@@ -3,6 +3,12 @@ import re
 
 from openai import OpenAI
 
+def clean_json_block(text):
+    """
+    去除 markdown 代码块标记
+    """
+    return re.sub(r"^```json\s*|```$", "", text, flags=re.MULTILINE).strip()
+
 def llm_chat(prompt: str, llm: str, model: str):
     """
     调用模型
@@ -28,7 +34,7 @@ def _api_gpt(prompt: str, model: str):
         messages=[{"role": "user", "content": prompt}],
     )
     answer = response.choices[0].message.content
-    return None, answer
+    return None, clean_json_block(answer)
 
 def _api_qwen3(prompt: str, model: str):
     """
@@ -64,7 +70,7 @@ def _api_qwen3(prompt: str, model: str):
         elif answer_chunk != '':
             answer += answer_chunk
 
-    return think, answer
+    return think, clean_json_block(answer)
 
 def _ollama_qwen3(prompt: str, model: str):
     """
@@ -83,5 +89,5 @@ def _ollama_qwen3(prompt: str, model: str):
         think = match.group(1).strip()
         answer = match.group(2).strip()
 
-    return think, answer
+    return think, clean_json_block(answer)
     

@@ -11,19 +11,13 @@ from .humaneval_utils import evaluate_functional_correctness
 
 _num_pat = re.compile(r'^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$')
 
-def clean_json_block(text):
-    """
-    去除 markdown 代码块标记
-    """
-    return re.sub(r"^```json\s*|```$", "", text, flags=re.MULTILINE).strip()
-
 def get_predict_answer(last_content, dataset_info):
     """
     从agent历史对话中解析出最后一个agent的答案。
     支持多种数据集类型：选择题、数学推理、编程问题。
     """
     try:
-        obj = json.loads(clean_json_block(last_content))
+        obj = json.loads(last_content)
         if 'answer' not in obj:
             return None
         ans = obj['answer']

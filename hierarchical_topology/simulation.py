@@ -4,7 +4,7 @@
 多智能体仿真主流程
 """
 from . import roles
-from .prompts import get_prompt, get_detector_prompt
+from .prompts import DETECT_TEMPLATE, get_prompt
 from utils.llm import llm_chat
 from utils.metrics import get_predict_answer, parse_detect_result
 
@@ -25,7 +25,6 @@ def run_single_simulation(dataset_info, sample, condition, malicious_role, llm, 
         predict_role: 预测恶意角色
     """
     agent_records = []      # 记录每个agent的prompt、think和answer
-    records_str = ""        # 每个agent的结果记录，用于判断恶意agent
     
     # 构建问答参数
     format_kwargs = {
@@ -47,13 +46,12 @@ def run_single_simulation(dataset_info, sample, condition, malicious_role, llm, 
         # 解析预测结果
         predict_answer = get_predict_answer(answer, dataset_info)
         # 记录agent结果
-        agent_records.append({"role": role, "prompt": prompt, "think": think, "answer": answer, "predict_answer": predict_answer})
-        records_str += f"\n{role}: {answer}"
+        agent_records.append({"role": role, "prompt": prompt, "think": think, "answer": answer, "predict": predict_answer})
         # 构建下一个agent的提示词
-        format_kwargs['prev_content'] = answer
+        format_kwargs[role + '_answer'] = answer
 
     # 构建检测提示词
-    prompt = get_detector_prompt(dataset_info, sample, records_str)
+    prompt = DETECT_TEMPLATE.format(**format_kwargs)
     # LLM推理
     think, answer = llm_chat(prompt, llm, model)
     predict_role = parse_detect_result(answer, roles)
@@ -62,7 +60,7 @@ def run_single_simulation(dataset_info, sample, condition, malicious_role, llm, 
         "prompt": prompt,
         "think": think,
         "answer": answer,
-        "predict_role": predict_role,
+        "predict": predict_role,
     })
     
     return agent_records, predict_answer, predict_role
