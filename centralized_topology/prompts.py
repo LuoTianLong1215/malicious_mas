@@ -516,12 +516,12 @@ PROMPT_TEMPLATE = {
         "Worker1": {
             "No Malicious": MULTIPLE_CHOICE_WORKER_NO_MALICIOUS_TEMPLATE,
             "Simple Malicious": MULTIPLE_CHOICE_WORKER_SIMPLE_MALICIOUS_TEMPLATE,
-            "Framing Malicious": MULTIPLE_CHOICE_WORKER1_FRAMING_MALICIOUS_TEMPLATE,
+            "Framing Malicious": MULTIPLE_CHOICE_WORKER_FRAMING_MALICIOUS_TEMPLATE,
         },
         "Worker2": {
             "No Malicious": MULTIPLE_CHOICE_WORKER_NO_MALICIOUS_TEMPLATE,
             "Simple Malicious": MULTIPLE_CHOICE_WORKER_SIMPLE_MALICIOUS_TEMPLATE,
-            "Framing Malicious": MULTIPLE_CHOICE_WORKER2_FRAMING_MALICIOUS_TEMPLATE,
+            "Framing Malicious": MULTIPLE_CHOICE_WORKER_FRAMING_MALICIOUS_TEMPLATE,
         },
         "Central": {
             "No Malicious": MULTIPLE_CHOICE_CENTRAL_NO_MALICIOUS_TEMPLATE,
