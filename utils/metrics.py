@@ -11,53 +11,49 @@ from .humaneval_utils import evaluate_functional_correctness
 
 _num_pat = re.compile(r'^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$')
 
+def clean_json_block(text):
+    """
+    去除 markdown 代码块标记
+    """
+    return re.sub(r"^```json\s*|```$", "", text, flags=re.MULTILINE).strip()
+
 def get_predict_answer(last_content, dataset_info):
     """
     从agent历史对话中解析出最后一个agent的答案。
     支持多种数据集类型：选择题、数学推理、编程问题。
     """
-    
-    if dataset_info['type'] == "multiple_choice":
-        return get_multiple_choice_answer(last_content, dataset_info['options_count'])
-    elif dataset_info['type'] == "math_reasoning":
-        return get_math_answer(last_content)
-    else:
-        return get_code_answer(last_content)
-
-def get_multiple_choice_answer(content, options_count):
-    """
-    从内容中解析选择题答案。
-    """
     try:
-        obj = json.loads(content)
-        ans = obj.get('answer', '').strip().upper()
-        if ans in [chr(i + 65) for i in range(options_count)]:
+        obj = json.loads(clean_json_block(last_content))
+        if 'answer' not in obj:
+            return None
+        ans = obj['answer']
+        if dataset_info['type'] == "multiple_choice":
+            return get_multiple_choice_answer(ans, dataset_info['options_count'])
+        elif dataset_info['type'] == "math_reasoning":
+            return get_math_answer(ans)
+        else:
             return ans
     except Exception:
         pass
     return None
 
-def get_math_answer(content):
+def get_multiple_choice_answer(ans, options_count):
+    """
+    从内容中解析选择题答案。
+    """
+    ans = ans.strip().upper()
+    if ans in [chr(i + 65) for i in range(options_count)]:
+        return ans
+    else:
+        return None
+
+def get_math_answer(ans):
     """
     从内容中解析数学答案。
     """
     try:
-        obj = json.loads(content)
-        ans = obj.get('answer', '').strip()
+        ans = ans.strip()
         if _num_pat.fullmatch(ans):
-            return ans
-    except Exception:
-        pass
-    return None
-
-def get_code_answer(content):
-    """
-    从内容中解析代码答案。
-    """
-    try:
-        obj = json.loads(content)
-        ans = obj.get('answer', '')
-        if ans:
             return ans
     except Exception:
         pass

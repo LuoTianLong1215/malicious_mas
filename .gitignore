@@ -2,5 +2,5 @@ data/
 multiagent_eval_results/
 **/__pycache__/
 
-output.log
-output.pid
+output*.log
+output*.pid

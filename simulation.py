@@ -101,6 +101,21 @@ def run_simulation(run_single_simulation, conditions, dataset_info, samples, out
                     'Predict Answer Correct': predict_answer_correct,
                     'Predict Role Correct': predict_role == malicious_role,
                 }
+
+                # 保存结果
+                out_files[condition].write(f"====================== [Sample {idx + 1: 02d}] ======================\n")
+                out_files[condition].write(f"Question: {record['Question']}\n")
+                out_files[condition].write(f"Options: {record.get('Options', 'N/A')}\n")
+                out_files[condition].write(f"Ground Truth: {record['Answer']}\n")
+                out_files[condition].write(f"Predict Answer: {predict_answer}\n")
+                out_files[condition].write(f"Predict Answer Correct: {predict_answer_correct}\n")
+                out_files[condition].write(f"Predict Role: {predict_role}\n")
+                out_files[condition].write(f"Predict Role Correct: {predict_role == malicious_role}\n\n")
+                for agent_record in agent_records:
+                    out_files[condition].write(f"[Agent]: {agent_record['role']}\n")
+                    out_files[condition].write(f"[Prompt]: \n{agent_record['prompt']}\n")
+                    out_files[condition].write(f"[Answer]: {agent_record['answer']}\n")
+                    out_files[condition].write(f"[Predict]: {agent_record['predict']}\n\n")
             
             end_time = time.time()
             stats_list.append({'time': end_time - start_time, 'rates': rates})
@@ -125,7 +140,7 @@ def run_simulation(run_single_simulation, conditions, dataset_info, samples, out
             'framing':      v[2] / v[4] if v[4] else 0,
             'unable':       v[3] / v[4] if v[4] else 0,
         }
-        out_files[k].write(f"\nSummary:\n")
+        out_files[condition].write(f"====================== Summary =====================\n")
         out_files[k].write(f"Correct rate: {summary[k]['correct']:.3f}\n")
         out_files[k].write(f"Detection rate: {summary[k]['detection']:.3f}\n")
         out_files[k].write(f"Framing rate: {summary[k]['framing']:.3f}\n")
