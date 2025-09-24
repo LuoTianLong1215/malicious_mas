@@ -41,7 +41,7 @@ def main():
     
     # 第二步：创建完整解析器
     parser = argparse.ArgumentParser(description='Multi-Agent Malicious Detection System', parents=[base_parser])
-    parser.add_argument('--dataset', nargs='+', default=['mmlu', 'mmlu_pro', 'gsm8k', 'math'], choices=['mmlu', 'mmlu_pro', 'gsm8k', 'math', 'humaneval'], help='数据集 mmlu, mmlu_pre: 选择; gsm8k, math: 数学; humaneval: 代码')
+    parser.add_argument('--dataset', nargs='+', default=['mmlu', 'mmlu_pro', 'gsm8k', 'math', 'humaneval'], choices=['mmlu', 'mmlu_pro', 'gsm8k', 'math', 'humaneval'], help='数据集 mmlu, mmlu_pre: 选择; gsm8k, math: 数学; humaneval: 代码')
     parser.add_argument('--llm', default='api', choices=['api', 'ollama'], help='模型调用方式 api: 调用api; ollama: 调用ollama模型')
     parser.add_argument('--model', type=str, default='gpt-4o-mini', help='模型名称')
     parser.add_argument('--sample_size', type=int, default=50, help='样本数量')
