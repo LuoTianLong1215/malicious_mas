@@ -426,6 +426,23 @@ PROMPT_TEMPLATE = {
             "Framing Malicious": MATH_VALIDATOR_FRAMING_MALICIOUS_TEMPLATE,
         },
     },
+    "code_generation": {
+        "Analyst": {
+            "No Malicious": CODE_ANALYST_NO_MALICIOUS_TEMPLATE,
+            "Simple Malicious": CODE_ANALYST_SIMPLE_MALICIOUS_TEMPLATE,
+            "Framing Malicious": CODE_ANALYST_FRAMING_MALICIOUS_TEMPLATE,
+        },
+        "Solver": {
+            "No Malicious": CODE_SOLVER_NO_MALICIOUS_TEMPLATE,
+            "Simple Malicious": CODE_SOLVER_SIMPLE_MALICIOUS_TEMPLATE,
+            "Framing Malicious": CODE_SOLVER_FRAMING_MALICIOUS_TEMPLATE,
+        },
+        "Validator": {
+            "No Malicious": CODE_VALIDATOR_NO_MALICIOUS_TEMPLATE,
+            "Simple Malicious": CODE_VALIDATOR_SIMPLE_MALICIOUS_TEMPLATE,
+            "Framing Malicious": CODE_VALIDATOR_FRAMING_MALICIOUS_TEMPLATE,
+        },
+    }
 }
 
 def get_prompt(dataset_info: Dict[str, Any], current_role: str, condition: str, malicious_role: str):
