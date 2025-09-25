@@ -5,7 +5,7 @@
 在去中心化拓扑中，所有 agent 都是平等的，可以相互交流和影响。
 """
 from . import roles, prev_num, discussion_num
-from .prompts import get_prompt, get_detector_prompt
+from .prompts import DETECT_TEMPLATE, get_prompt
 from utils.llm import llm_chat
 from utils.metrics import get_predict_answer, parse_detect_result
 from collections import Counter
@@ -64,9 +64,10 @@ def run_single_simulation(dataset_info, sample, condition, malicious_role, llm, 
         # 更新prev_content，使其包含之前所有agent的讨论内容
         prev_discussions.append(answer)
         format_kwargs['prev_discussions'] = "\n".join(prev_discussions[-prev_num:])
+        format_kwargs[role + "_answer"] = answer
 
     # 构建检测提示词
-    prompt = get_detector_prompt(dataset_info, sample, records_str)
+    prompt = DETECT_TEMPLATE.format(**format_kwargs)
     # LLM推理
     think, answer = llm_chat(prompt, llm, model)
     predict_role = parse_detect_result(answer, roles)
