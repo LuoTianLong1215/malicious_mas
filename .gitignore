@@ -1,6 +1,13 @@
+# data
 data/
-multiagent_eval_results/
-**/__pycache__/
 
-output*.log
-output*.pid
+# output
+multiagent_eval_results/
+*.log
+
+# IDEA
+.idea/
+
+# Agent
+docs/
+AGENTS.md

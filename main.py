@@ -1,7 +1,8 @@
 # main.py
 """
-主入口，负责参数解析、数据加载、调用 simulation、输出结果等。
+主入口，负责配置加载、数据加载、调用 simulation、输出结果等。
 支持多种数据集：MMLU、MMLU-Pro、GSM8K、MATH、HumanEval
+运行方式：python main.py --config config_example.yaml
 """
 
 import argparse
@@ -13,99 +14,82 @@ import decentralized_topology
 from simulation import run_simulation
 from utils.utils import save_excel, set_seed, get_result_dir
 from utils.dataset_loader import create_dataset_loader
+from utils.config_loader import load_config
 
-# 定义攻击条件
-conditions = ['No Malicious', 'Simple Malicious', 'Framing Malicious']
 # 结果文件夹
 base_dir = os.path.join(os.path.dirname(__file__), 'multiagent_eval_results')
 # 结果Excel
 result_excel = os.path.join(base_dir, 'multiagent_eval_results.xlsx')
 
+# 拓扑模块映射
+TOPOLOGY_MODULES = {
+    'hierarchical': hierarchical_topology,
+    'centralized': centralized_topology,
+    'decentralized': decentralized_topology,
+}
+
+
 def main():
-    # 第一步：创建基础解析器，只包含拓扑参数
-    base_parser = argparse.ArgumentParser(add_help=False)
-    base_parser.add_argument('--topology', choices=['hierarchical', 'centralized', 'decentralized'], help='拓扑策略')
-    
-    # 解析拓扑参数
-    args, remaining_argv = base_parser.parse_known_args()
+    parser = argparse.ArgumentParser(description='Multi-Agent Malicious Detection System')
+    parser.add_argument('--config', type=str, required=True, help='YAML 配置文件路径')
+    args = parser.parse_args()
 
-    topology = args.topology
-    if topology == 'hierarchical':
-        run_single_simulation = hierarchical_topology.run_single_simulation
-    elif topology == 'centralized':
-        run_single_simulation = centralized_topology.run_single_simulation
-    elif topology == 'decentralized':
-        run_single_simulation = decentralized_topology.run_single_simulation
-    else:
-        raise ValueError(f"未知的拓扑类型: {topology}")
-    
-    # 第二步：创建完整解析器
-    parser = argparse.ArgumentParser(description='Multi-Agent Malicious Detection System', parents=[base_parser])
-    parser.add_argument('--dataset', nargs='+', default=['mmlu', 'mmlu_pro', 'gsm8k', 'math', 'humaneval'], choices=['mmlu', 'mmlu_pro', 'gsm8k', 'math', 'humaneval'], help='数据集 mmlu, mmlu_pre: 选择; gsm8k, math: 数学; humaneval: 代码')
-    parser.add_argument('--llm', default='api', choices=['api', 'ollama'], help='模型调用方式 api: 调用api; ollama: 调用ollama模型')
-    parser.add_argument('--model', type=str, default='gpt-4o-mini', help='模型名称')
-    parser.add_argument('--sample_size', type=int, default=50, help='样本数量')
-    parser.add_argument('--random_seed', type=int, default=42, help='随机种子')
-    
-    # 根据拓扑类型设置malicious_role参数选项
-    if topology == 'hierarchical':
-        parser.add_argument('--malicious_roles', nargs='+', default=hierarchical_topology.roles, choices=hierarchical_topology.roles, help=hierarchical_topology.help)
-    elif topology == 'centralized':
-        parser.add_argument('--malicious_roles', nargs='+', default=centralized_topology.roles, choices=centralized_topology.roles, help=centralized_topology.help)
-    elif topology == 'decentralized':
-        parser.add_argument('--malicious_roles', nargs='+', default=decentralized_topology.roles, choices=decentralized_topology.roles, help=decentralized_topology.help)
-    else:
-        raise ValueError(f"未知的拓扑类型: {topology}")
-    
-    # 解析所有参数
-    args = parser.parse_args(remaining_argv)
-    
-    for malicious_role in args.malicious_roles:
-        for dataset_name in args.dataset:
-            print("=" * 100)
+    # 加载配置
+    config = load_config(args.config)
 
-            # 设置随机种子
-            set_seed(args.random_seed)
+    for experiment in config['experiments']:
+        topology_name = experiment['topology']
+        conditions = experiment['conditions']
+        topology_module = TOPOLOGY_MODULES[topology_name]
 
-            # 创建数据集加载器
-            dataset_loader = create_dataset_loader(
-                dataset_name=dataset_name,
-                sample_size=args.sample_size,
-                random_seed=args.random_seed
-            )
-            
-            # 加载数据集
-            print(f"Load {dataset_name} Dataset...")
-            samples = dataset_loader.load_dataset()
-            
-            if not samples:
-                print(f"Load {dataset_name} Dataset Failed")
-                continue
-            
-            print(f"Load {len(samples)} Samples from {dataset_name} Dataset")
-            
-            # 获取数据集信息
-            dataset_info = dataset_loader.get_dataset_info()
-            
-            # 设置输出目录
-            results_dir = get_result_dir(dataset_info['name'], topology, malicious_role, args.model, base_dir)
-            os.makedirs(results_dir, exist_ok=True)
-            
-            print(f"Dataset Name: {dataset_name}")
-            print(f"Dataset Type: {dataset_info['type']}")
-            print(f"Model: {args.model}")
-            print(f"Sample Size: {args.sample_size}")
-            print(f"Output Directory: {results_dir}")
-            print(f"Topology: {topology}")
-            print(f"Malicious Role: {malicious_role}")
-            print("=" * 100)
-            
-            
-            run_simulation(run_single_simulation, conditions, dataset_info, samples, results_dir, malicious_role, args.llm, args.model)
+        for malicious_role in experiment['malicious_roles']:
+            for dataset_name in experiment['datasets']:
+                print("=" * 100)
+
+                # 设置随机种子
+                set_seed(config['random_seed'])
+
+                # 创建数据集加载器
+                dataset_loader = create_dataset_loader(
+                    dataset_name=dataset_name,
+                    sample_size=config['sample_size'],
+                    random_seed=config['random_seed']
+                )
+
+                # 加载数据集
+                print(f"Load {dataset_name} Dataset...")
+                samples = dataset_loader.load_dataset()
+
+                if not samples:
+                    print(f"Load {dataset_name} Dataset Failed")
+                    continue
+
+                print(f"Load {len(samples)} Samples from {dataset_name} Dataset")
+
+                # 获取数据集信息
+                dataset_info = dataset_loader.get_dataset_info()
+
+                # 设置输出目录
+                results_dir = get_result_dir(dataset_info['name'], topology_name, malicious_role, config['model'], base_dir)
+                os.makedirs(results_dir, exist_ok=True)
+
+                print(f"Dataset Name: {dataset_name}")
+                print(f"Dataset Type: {dataset_info['type']}")
+                print(f"Model: {config['model']}")
+                print(f"Sample Size: {config['sample_size']}")
+                print(f"Output Directory: {results_dir}")
+                print(f"Topology: {topology_name}")
+                print(f"Malicious Role: {malicious_role}")
+                print(f"Conditions: {conditions}")
+                print("=" * 100)
+
+                run_simulation(
+                    topology_module.run_single_simulation,
+                    conditions,
+                    dataset_info, samples, results_dir,
+                    malicious_role, config['llm'], config['model']
+                )
+
 
 if __name__ == '__main__':
-    # nohup python -u main.py > output.log 2>&1 &
-    # echo $! > output.pid
     main()
-
-    # save_excel(result_excel, base_dir, conditions)

@@ -54,7 +54,7 @@ def run_single_simulation(dataset_info, sample, condition, malicious_role, llm, 
         # 解析预测结果
         predict_answer = get_predict_answer(answer, dataset_info)
         # 记录agent结果
-        agent_records.append({"role": role, "prompt": prompt, "think": think, "answer": answer, "predict_answer": predict_answer})
+        agent_records.append({"role": role, "prompt": prompt, "think": think, "answer": answer, "predict": predict_answer})
         records_str += f"\n{role}: {answer}"
         
         # 记录预测答案
@@ -76,7 +76,7 @@ def run_single_simulation(dataset_info, sample, condition, malicious_role, llm, 
         "prompt": prompt,
         "think": think,
         "answer": answer,
-        "predict_role": predict_role,
+        "predict": predict_role,
     })
     
     # 计算所有agent答案的众数作为最终预测结果

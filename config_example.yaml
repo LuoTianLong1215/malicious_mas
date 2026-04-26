@@ -1,0 +1,38 @@
+# malicious_mas 实验配置文件
+# 运行方式: python main.py --config config_example.yaml
+
+llm: api
+model: gpt-4o-mini-test
+sample_size: 50
+random_seed: 42
+
+experiments:
+  - topology: hierarchical
+    conditions:
+      - No Malicious
+      - Simple Malicious
+      - Framing Malicious
+      - PsySafe Malicious
+      - IntentionHiding Malicious
+    malicious_roles: [Analyst, Solver, Validator]
+    datasets: [mmlu, mmlu_pro, gsm8k, math, humaneval]
+
+  - topology: centralized
+    conditions:
+      - No Malicious
+      - Simple Malicious
+      - Framing Malicious
+      - PsySafe Malicious
+      - IntentionHiding Malicious
+    malicious_roles: [Worker1, Worker2, Central]
+    datasets: [mmlu, mmlu_pro, gsm8k, math, humaneval]
+
+  - topology: decentralized
+    conditions:
+      - No Malicious
+      - Simple Malicious
+      - Framing Malicious
+      - PsySafe Malicious
+      - IntentionHiding Malicious
+    malicious_roles: [Agent1, Agent2, Agent3]
+    datasets: [mmlu, mmlu_pro, gsm8k, math, humaneval]
